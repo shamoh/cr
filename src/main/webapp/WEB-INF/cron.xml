@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<cronentries>
+    <cron>
+        <url>/fetch</url>
+        <schedule>every 1 hours from 00:29 to 23:59</schedule>
+        <description>hourly fetching clan stats job</description>
+        <retry-parameters>
+            <min-backoff-seconds>2.5</min-backoff-seconds>
+            <max-doublings>5</max-doublings>
+        </retry-parameters>
+    </cron>
+</cronentries>
