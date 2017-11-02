@@ -6,6 +6,8 @@ import cz.kramolis.cr.domain.ClanEntity;
 import cz.kramolis.cr.domain.MemberEntity;
 import cz.kramolis.cr.remote.ClanModel;
 import cz.kramolis.cr.remote.MemberModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,11 +19,14 @@ import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 public class FetchClanStatsServlet extends HttpServlet {
+    private static final Logger log = LoggerFactory.getLogger(FetchClanStatsServlet.class);
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -36,29 +41,34 @@ public class FetchClanStatsServlet extends HttpServlet {
 
             Gson gson = new Gson();
             ClanModel model = gson.fromJson(reader, ClanModel.class);
-            System.out.println(">>> " + model);
+
+            log.debug("Loaded clan stats: {}", model);
 
             Instant timestamp = Instant.now();
 
             ClanEntity clan = from(timestamp, model);
             ofy().save().entity(clan);
 
-            model.members
-                    .forEach(member -> ofy().save().entity(from(timestamp, clan, member)));
+            List<MemberEntity> members = new ArrayList<>(model.members.size());
+            model.members.forEach(member -> members.add(from(timestamp, clan, member)));
+            ofy().save().entities(members);
 
             response.setDateHeader("Last-Modified", System.currentTimeMillis());
             response.setStatus(200);
             response.getWriter().append("OK: " + timestamp);
         } catch (Exception ex) {
-            if (inputStream != null) {
-                inputStream.close();
-            }
+            log.error("Fetching has been interrupted with exception.", ex);
+
             response.setDateHeader("Last-Modified", System.currentTimeMillis());
             response.setStatus(500);
             response.setContentType("text/html");
             response.getWriter().append("<pre>");
             ex.printStackTrace(response.getWriter());
             response.getWriter().append("</pre>");
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
         }
     }
 

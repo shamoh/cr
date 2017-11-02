@@ -7,7 +7,7 @@
         <description>hourly fetching clan stats job</description>
         <retry-parameters>
             <min-backoff-seconds>2.5</min-backoff-seconds>
-            <max-doublings>5</max-doublings>
+            <max-doublings>7</max-doublings>
         </retry-parameters>
     </cron>
 </cronentries>
