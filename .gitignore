@@ -4,3 +4,4 @@ build/
 api_key.py
 client-secret.json
 credentials.tar.gz
+/src/main/resources/secrets.properties
